@@ -29,7 +29,7 @@ const iviRenderCommandHandler = {
   [COMMAND_RENDER]: (trigger, params, effectHandlers, el) => {
     const { screen, args } = params;
     console.log(`screen, args`, screen, args, el);
-    render(screens(trigger)[screen](...args), el);
+    render(screens(trigger)[screen](...args), document.getElementById("root"));
   }
 };
 const commandHandlersWithRender = Object.assign({}, commandHandlers, iviRenderCommandHandler);
