@@ -1,0 +1,26 @@
+{
+  "name": "ivi-movie-app-with-state-machine",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.html",
+  "scripts": {
+    "start": "parcel index.html --open",
+    "build": "parcel build index.html"
+  },
+  "dependencies": {
+    "emitonoff": "0.1.1",
+    "hyperscript-helpers": "3.0.3",
+    "ivi": "0.20.0",
+    "ivi-html": "0.20.0",
+    "json-patch-es6": "2.0.6",
+    "state-transducer": "0.10.2",
+    "superagent": "4.0.0"
+  },
+  "devDependencies": {
+    "http2": "^3.3.7",
+    "@babel/core": "7.2.0",
+    "@types/superagent": "3.8.5",
+    "parcel-bundler": "^1.6.1"
+  },
+  "keywords": []
+}
