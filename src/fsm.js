@@ -28,8 +28,8 @@ import {
   runMovieDetailQuery,
   runMovieSearchQuery
 } from "./helpers";
-import { div, a, ul, li, input, h1, h3, legend, img, dl, dt, dd } from "ivi-html";
-import { _ } from "ivi";
+import { div, a, ul, li, input, h1, h3, legend, img, dl, dt, dd, VALUE } from "ivi-html";
+import { _, Events, onClick, onInput, TrackByKey, key } from "ivi";
 
 const NO_ACTIONS = () => ({ outputs: NO_OUTPUT, updates: NO_STATE_UPDATE });
 
@@ -162,10 +162,10 @@ const transitions = [
   }
 ];
 const eventHandlersFactory = next => ({
-  [QUERY_CHANGED]: ev => next({ [QUERY_CHANGED]: ev.target.value }),
-  [QUERY_RESETTED]: ev => next({ [QUERY_CHANGED]: "" }),
+  [QUERY_CHANGED]: onInput(ev => next({ [QUERY_CHANGED]: ev.native.target.value })),
+  [QUERY_RESETTED]: onClick(() => next({ [QUERY_CHANGED]: "" })),
   [MOVIE_SELECTED]: (ev, result) => next({ [MOVIE_SELECTED]: { movie: result } }),
-  [MOVIE_DETAILS_DESELECTED]: ev => next({ [MOVIE_DETAILS_DESELECTED]: void 0 })
+  [MOVIE_DETAILS_DESELECTED]: onClick(() => next({ [MOVIE_DETAILS_DESELECTED]: void 0 }))
 });
 
 const {
@@ -178,444 +178,242 @@ const {
   MOVIE_TITLE_TESTID,
   NETWORK_ERROR_TESTID
 } = testIds;
+
+const App = (page, children) =>
+  div("App uk-light uk-background-secondary", { "data-active-page": page }, children);
+const Container = children => div("App__view-container", _, children);
+const AppView = (page, children) =>
+  div(
+    "App__view uk-margin-top-small uk-margin-left uk-margin-right",
+    { "data-page": page },
+    children
+  );
+const Legend = legend("uk-legend", { "data-testid": PROMPT_TESTID }, PROMPT);
+
+const SearchBar = (eventHandlers, query) =>
+  div("SearchBar uk-inline uk-margin-bottom", _, [
+    Events(
+      eventHandlers[QUERY_RESETTED],
+      a("uk-form-icon uk-form-icon-flip js-clear", {
+        "uk-icon": query.length > 0 ? "icon:close" : "icon:search"
+      })
+    ),
+    Events(
+      eventHandlers[QUERY_CHANGED],
+      input("SearchBar__input uk-input js-input", {
+        type: "text",
+        value: VALUE(query),
+        "data-testid": QUERY_FIELD_TESTID
+      })
+    )
+  ]);
+
+const TopBar = (eventHandlers, query) => [
+  h1(_, _, `TMDb UI – Home`),
+  Legend,
+  SearchBar(eventHandlers, query),
+  h3(
+    "uk-heading-bullet uk-margin-remove-top",
+    { "data-testid": RESULTS_HEADER_TESTID },
+    query.length === 0 ? POPULAR_NOW : SEARCH_RESULTS_FOR(query)
+  )
+];
+
+const ResultsContainer = children =>
+  div("ResultsContainer", { "data-testid": RESULTS_CONTAINER_TESTID }, children);
+
+const Results = (eventHandlers, results) =>
+  ul(
+    "uk-thumbnav",
+    _,
+    TrackByKey(
+      results
+        ? results
+          .filter(result => result.backdrop_path)
+          .map(result =>
+            key(
+              result.id,
+              li(
+                "uk-margin-bottom",
+                _,
+                Events(
+                  onClick(ev => eventHandlers[MOVIE_SELECTED](ev, result)),
+                  a(
+                    "ResultsContainer__result-item js-result-click",
+                    { href: "#", "data-id": result.id },
+                    [
+                      div(
+                        "ResultsContainer__thumbnail-holder",
+                        _,
+                        img(_, {
+                          src: `${IMAGE_TMDB_PREFIX}${result.backdrop_path}`,
+                          alt: "",
+                          "data-testid": MOVIE_IMG_SRC_TESTID
+                        })
+                      ),
+                      div(
+                        "ResultsContainer__caption uk-text-small uk-text-muted",
+                        { "data-testid": MOVIE_TITLE_TESTID },
+                        result.title
+                      )
+                    ]
+                  )
+                )
+              )
+            )
+          )
+        : null
+    )
+  );
+
+const Desc = (t, d) => [dt(_, _, t), dd(_, _, d)];
+
 export const screens = next => {
   const eventHandlers = eventHandlersFactory(next);
 
   return {
     [LOADING_SCREEN]: () =>
-      div("App.uk-light uk-background-secondary", { "data-active-page": "home" }, [
-        div("App__view-container", [
-          div(
-            "App__view uk-margin-top-small uk-margin-left uk-margin-right",
-            { "data-page": "home" },
-            [
-              div("HomePage", [
-                h1([`TMDb UI – Home`]),
-                legend("uk-legend", { "data-testid": PROMPT_TESTID }, [PROMPT]),
-                div("SearchBar uk-inline uk-margin-bottom", [
-                  a("uk-form-icon uk-form-icon-flip js-clear", {
-                    "uk-icon": "icon:search"
-                  }),
-                  input("SearchBar__input uk-input js-input", {
-                    type: "text",
-                    value: "",
-                    onInput: eventHandlers[QUERY_CHANGED],
-                    "data-testid": QUERY_FIELD_TESTID
-                  })
-                ]),
-                h3(
-                  "uk-heading-bullet uk-margin-remove-top",
-                  { "data-testid": RESULTS_HEADER_TESTID },
-                  [POPULAR_NOW]
-                ),
-                div("ResultsContainer", { "data-testid": RESULTS_CONTAINER_TESTID }, [
-                  div([LOADING])
-                ])
-              ])
-            ]
+      App(
+        "home",
+        Container(
+          AppView(
+            "home",
+            div("HomePage", _, [TopBar(eventHandlers, ""), ResultsContainer(div(_, _, LOADING))])
           )
-        ])
-      ]),
+        )
+      ),
     [SEARCH_RESULTS_SCREEN]: (results, query) =>
-      div(" App uk-light uk-background-secondary", { "data-active-page": "home" }, [
-        div(" App__view-container", [
-          div(
-            " App__view uk-margin-top-small uk-margin-left uk-margin-right",
-            { "data-page": "home" },
-            [
-              div(" HomePage", [
-                h1([`TMDb UI – Home`]),
-                legend(" uk-legend", { "data-testid": PROMPT_TESTID }, [PROMPT]),
-                div(" SearchBar uk-inline uk-margin-bottom", [
-                  a(" uk-form-icon uk-form-icon-flip js-clear", {
-                    "uk-icon": query.length > 0 ? "icon:close" : "icon:search",
-                    onClick: eventHandlers[QUERY_RESETTED]
-                  }),
-                  input(".SearchBar__input uk-input js-input", {
-                    type: "text",
-                    value: query,
-                    onInput: eventHandlers[QUERY_CHANGED],
-                    "data-testid": QUERY_FIELD_TESTID
-                  })
-                ]),
-                h3(
-                  " uk-heading-bullet uk-margin-remove-top",
-                  { "data-testid": RESULTS_HEADER_TESTID },
-                  [query.length === 0 ? POPULAR_NOW : SEARCH_RESULTS_FOR(query)]
-                ),
-                div(" ResultsContainer", { "data-testid": RESULTS_CONTAINER_TESTID }, [
-                  ul(" uk-thumbnav", [
-                    results &&
-                      results
-                        .filter(result => result.backdrop_path)
-                        .map(result =>
-                          li(" uk-margin-bottom", { key: result.id }, [
-                            a(
-                              "ResultsContainer__result-item js-result-click",
-                              {
-                                href: "#",
-                                onClick: ev => eventHandlers[MOVIE_SELECTED](ev, result),
-                                "data-id": result.id
-                              },
-                              [
-                                div("ResultsContainer__thumbnail-holder", [
-                                  img({
-                                    src: `${IMAGE_TMDB_PREFIX}${result.backdrop_path}`,
-                                    alt: "",
-                                    "data-testid": MOVIE_IMG_SRC_TESTID
-                                  })
-                                ]),
-                                div(
-                                  " ResultsContainer__caption uk-text-small uk-text-muted",
-                                  { "data-testid": MOVIE_TITLE_TESTID },
-                                  [result.title]
-                                )
-                              ]
-                            )
-                          ])
-                        )
-                  ])
-                ])
-              ])
-            ]
+      App(
+        "home",
+        Container(
+          AppView(
+            "home",
+            div("HomePage", _, [
+              TopBar(eventHandlers, query),
+              ResultsContainer(Results(eventHandlers, results))
+            ])
           )
-        ])
-      ]),
+        )
+      ),
     [SEARCH_ERROR_SCREEN]: query =>
-      div("App uk-light uk-background-secondary", { "data-active-page": "home" }, [
-        div("App__view-container", [
-          div(
-            "App__view uk-margin-top-small uk-margin-left uk-margin-right",
-            { "data-page": "home" },
-            [
-              div("HomePage", [
-                h1([`TMDb UI – Home`]),
-                legend("uk-legend", { "data-testid": PROMPT_TESTID }, [PROMPT]),
-                div("SearchBar uk-inline uk-margin-bottom", [
-                  a("uk-form-icon uk-form-icon-flip js-clear", {
-                    "uk-icon": query.length > 0 ? "icon:close" : "icon:search",
-                    onClick: eventHandlers[QUERY_RESETTED]
-                  }),
-                  input("SearchBar__input uk-input js-input", {
-                    type: "text",
-                    value: query,
-                    onInput: eventHandlers[QUERY_CHANGED],
-                    "data-testid": QUERY_FIELD_TESTID
-                  })
-                ]),
-                h3(
-                  "uk-heading-bullet uk-margin-remove-top",
-                  { "data-testid": RESULTS_HEADER_TESTID },
-                  [POPULAR_NOW]
-                ),
-                div("ResultsContainer", { "data-testid": RESULTS_CONTAINER_TESTID }, [
-                  div({ "data-testid": NETWORK_ERROR_TESTID }, [NETWORK_ERROR])
-                ])
-              ])
-            ]
+      App(
+        "home",
+        Container(
+          AppView(
+            "home",
+            div("HomePage", _, [
+              TopBar(eventHandlers, query),
+              ResultsContainer(div(_, { "data-testid": NETWORK_ERROR_TESTID }, NETWORK_ERROR))
+            ])
           )
-        ])
-      ]),
+        )
+      ),
     [SEARCH_RESULTS_AND_LOADING_SCREEN]: (results, query) =>
-      div("App uk-light uk-background-secondary", { "data-active-page": "home" }, [
-        div("App__view-container", [
-          div(
-            "App__view uk-margin-top-small uk-margin-left uk-margin-right",
-            { "data-page": "home" },
-            [
-              div("HomePage", [
-                h1([`TMDb UI – Home`]),
-                legend("uk-legend", { "data-testid": PROMPT_TESTID }, [PROMPT]),
-                div("SearchBar uk-inline uk-margin-bottom", [
-                  a("uk-form-icon uk-form-icon-flip js-clear", {
-                    "uk-icon": query.length > 0 ? "icon:close" : "icon:search",
-                    onClick: eventHandlers[QUERY_RESETTED]
-                  }),
-                  input("SearchBar__input uk-input js-input", {
-                    type: "text",
-                    value: query,
-                    onInput: eventHandlers[QUERY_CHANGED],
-                    "data-testid": QUERY_FIELD_TESTID
-                  })
-                ]),
-                h3(
-                  "uk-heading-bullet uk-margin-remove-top",
-                  { "data-testid": RESULTS_HEADER_TESTID },
-                  [query.length === 0 ? POPULAR_NOW : SEARCH_RESULTS_FOR(query)]
-                ),
-                div("ResultsContainer", { "data-testid": RESULTS_CONTAINER_TESTID }, [
-                  div([LOADING])
-                ])
-              ])
-            ]
+      App(
+        "home",
+        Container(
+          AppView(
+            "home",
+            div("HomePage", _, [TopBar(eventHandlers, query), ResultsContainer(div(_, _, LOADING))])
           )
-        ])
-      ]),
+        )
+      ),
     [SEARCH_RESULTS_WITH_MOVIE_DETAILS_AND_LOADING_SCREEN]: (results, query, movieDetail) =>
-      div("App uk-light uk-background-secondary", { "data-active-page": "item" }, [
-        div("App__view-container", [
-          div(
-            "App__view uk-margin-top-small uk-margin-left uk-margin-right",
-            { "data-page": "home" },
-            [
-              div("HomePage", [
-                h1([`TMDb UI – Home`]),
-                legend("uk-legend", { "data-testid": PROMPT_TESTID }, [PROMPT]),
-                div("SearchBar uk-inline uk-margin-bottom", [
-                  a("uk-form-icon uk-form-icon-flip js-clear", {
-                    "uk-icon": query.length > 0 ? "icon:close" : "icon:search",
-                    onClick: eventHandlers[QUERY_RESETTED]
-                  }),
-                  input("SearchBar__input uk-input js-input", {
-                    type: "text",
-                    value: query,
-                    onInput: eventHandlers[QUERY_CHANGED],
-                    "data-testid": QUERY_FIELD_TESTID
-                  })
-                ]),
-                h3(
-                  "uk-heading-bullet uk-margin-remove-top",
-                  { "data-testid": RESULTS_HEADER_TESTID },
-                  [query.length === 0 ? POPULAR_NOW : SEARCH_RESULTS_FOR(query)]
-                ),
-                div("ResultsContainer", { "data-testid": RESULTS_CONTAINER_TESTID }, [
-                  ul(".uk-thumbnav", [
-                    results &&
-                      results
-                        .filter(result => result.backdrop_path)
-                        .map(result =>
-                          li(
-                            ".uk-margin-bottom",
-                            {
-                              key: result.id,
-                              onClick: ev => eventHandlers[MOVIE_SELECTED](ev, result)
-                            },
-                            [
-                              a(
-                                ".ResultsContainer__result-item.js-result-click",
-                                {
-                                  href: null,
-                                  "data-id": result.id
-                                },
-                                [
-                                  div(".ResultsContainer__thumbnail-holder", [
-                                    img({
-                                      src: `${IMAGE_TMDB_PREFIX}${result.backdrop_path}`,
-                                      alt: "",
-                                      "data-testid": MOVIE_IMG_SRC_TESTID
-                                    })
-                                  ]),
-                                  div(
-                                    ".ResultsContainer__caption.uk-text-small.uk-text-muted",
-                                    { "data-testid": MOVIE_TITLE_TESTID },
-                                    [result.title]
-                                  )
-                                ]
-                              )
-                            ]
-                          )
-                        )
-                  ])
-                ])
-              ])
-            ]
+      App(
+        "item",
+        Container([
+          AppView(
+            "home",
+            div("HomePage", _, [
+              TopBar(eventHandlers, query),
+              ResultsContainer(Results(eventHandlers, results))
+            ])
           ),
-          div(
-            "App__view uk-margin-top-small uk-margin-left uk-margin-right",
-            { "data-page": "item" },
-            [div([h1([movieDetail.title]), div([LOADING])])]
-          )
+          AppView("item", div(_, _, [h1(_, _, movieDetail.title), div(_, _, LOADING)]))
         ])
-      ]),
+      ),
     [SEARCH_RESULTS_WITH_MOVIE_DETAILS]: (results, query, details, cast) =>
-      div("App uk-light uk-background-secondary", { "data-active-page": "item" }, [
-        div("App__view-container", { onClick: eventHandlers[MOVIE_DETAILS_DESELECTED] }, [
-          div(
-            "App__view uk-margin-top-small uk-margin-left uk-margin-right",
-            { "data-page": "home" },
-            [
-              div("HomePage", [
-                h1([`TMDb UI – Home`]),
-                legend("uk-legend", { "data-testid": PROMPT_TESTID }, [PROMPT]),
-                div("SearchBar uk-inline uk-margin-bottom", [
-                  a("uk-form-icon uk-form-icon-flip js-clear", {
-                    "uk-icon": query.length > 0 ? "icon:close" : "icon:search",
-                    onClick: eventHandlers[QUERY_RESETTED]
-                  }),
-                  input("SearchBar__input uk-input js-input", {
-                    type: "text",
-                    value: query,
-                    onInput: eventHandlers[QUERY_CHANGED],
-                    "data-testid": QUERY_FIELD_TESTID
-                  })
-                ]),
-                h3(
-                  "uk-heading-bullet uk-margin-remove-top",
-                  { "data-testid": RESULTS_HEADER_TESTID },
-                  [query.length === 0 ? POPULAR_NOW : SEARCH_RESULTS_FOR(query)]
-                ),
-                div("ResultsContainer", { "data-testid": RESULTS_CONTAINER_TESTID }, [
-                  ul(".uk-thumbnav", [
-                    results &&
-                      results
-                        .filter(result => result.backdrop_path)
-                        .map(result =>
-                          li(".uk-margin-bottom", { key: result.id }, [
-                            a(
-                              ".ResultsContainer__result-item.js-result-click",
-                              {
-                                href: "#",
-                                onClick: ev => eventHandlers[MOVIE_SELECTED](ev, result),
-                                "data-id": result.id
-                              },
-                              [
-                                div(".ResultsContainer__thumbnail-holder", [
-                                  img({
-                                    src: `${IMAGE_TMDB_PREFIX}${result.backdrop_path}`,
-                                    alt: "",
-                                    "data-testid": MOVIE_IMG_SRC_TESTID
-                                  })
-                                ]),
-                                div(
-                                  ".ResultsContainer__caption.uk-text-small.uk-text-muted",
-                                  { "data-testid": MOVIE_TITLE_TESTID },
-                                  [result.title]
-                                )
-                              ]
-                            )
-                          ])
-                        )
-                  ])
-                ])
+      App(
+        "item",
+        Events(
+          eventHandlers[MOVIE_DETAILS_DESELECTED],
+          Container([
+            AppView(
+              "home",
+              div("HomePage", _, [
+                TopBar(eventHandlers, query),
+                ResultsContainer(Results(eventHandlers, results))
               ])
-            ]
-          ),
-          div(
-            "App__view uk-margin-top-small uk-margin-left uk-margin-right",
-            { "data-page": "item" },
-            [
-              div([
-                h1([details.title || ""]),
-                div(".MovieDetailsPage", [
+            ),
+            AppView(
+              "item",
+              div(_, _, [
+                h1(_, _, details.title || ""),
+                div("MovieDetailsPage", _, [
                   div(
-                    ".MovieDetailsPage__img-container.uk-margin-right",
-                    {
-                      style: { float: "left" }
-                    },
-                    [
-                      img({
-                        src: `http://image.tmdb.org/t/p/w342${details.poster_path}`,
-                        alt: ""
-                      })
-                    ]
+                    "MovieDetailsPage__img-container uk-margin-right",
+                    { style: { float: "left" } },
+                    img(_, {
+                      src: `http://image.tmdb.org/t/p/w342${details.poster_path}`,
+                      alt: ""
+                    })
                   ),
-                  dl(".uk-description-list", [
-                    dt([`Popularity`]),
-                    dd([details.vote_average]),
-                    dt([`Overview`]),
-                    dd([details.overview]),
-                    dt([`Genres`]),
-                    dd([details.genres.map(g => g.name).join(", ")]),
-                    dt([`Starring`]),
-                    dd([
+                  dl("uk-description-list", _, [
+                    Desc("Popularity", details.vote_average),
+                    Desc("Overview", details.overview),
+                    Desc("Genres", details.genres.map(g => g.name).join(", ")),
+                    Desc(
+                      "Starring",
                       cast.cast
                         .slice(0, 3)
                         .map(cast => cast.name)
                         .join(", ")
-                    ]),
-                    dt([`Languages`]),
-                    dd([details.spoken_languages.map(g => g.name).join(", ")]),
-                    dt([`Original Title`]),
-                    dd([details.original_title]),
-                    dt([`Release Date`]),
-                    dd([details.release_date]),
-                    details.imdb_id && dt([`IMDb URL`]),
-                    details.imdb_id &&
-                      dd([
-                        a(
-                          {
-                            href: `https://www.imdb.com/title/${details.imdb_id}/`
-                          },
-                          [`https://www.imdb.com/title/${details.imdb_id}/`]
-                        )
-                      ])
+                    ),
+                    Desc("Languages", details.spoken_languages.map(g => g.name).join(", ")),
+                    Desc("Original Title", details.original_title),
+                    Desc("Release Date", details.release_date),
+                    details.imdb_id
+                      ? Desc(
+                      "IMDb URL",
+                      a(
+                        _,
+                        {
+                          href: `https://www.imdb.com/title/${details.imdb_id}/`
+                        },
+                        `https://www.imdb.com/title/${details.imdb_id}/`
+                      )
+                      )
+                      : null
                   ])
                 ])
               ])
-            ]
-          )
-        ])
-      ]),
+            )
+          ])
+        )
+      ),
     [SEARCH_RESULTS_WITH_MOVIE_DETAILS_ERROR]: (results, query, title) =>
-      div("App uk-light uk-background-secondary", { "data-active-page": "item" }, [
-        div("App__view-container", { onClick: eventHandlers[MOVIE_DETAILS_DESELECTED] }, [
-          div(
-            "App__view uk-margin-top-small uk-margin-left uk-margin-right",
-            { "data-page": "home" },
-            [
-              div("HomePage", [
-                h1([`TMDb UI – Home`]),
-                legend("uk-legend", { "data-testid": PROMPT_TESTID }, [PROMPT]),
-                div("SearchBar uk-inline uk-margin-bottom", [
-                  a("uk-form-icon uk-form-icon-flip js-clear", {
-                    "uk-icon": query.length > 0 ? "icon:close" : "icon:search",
-                    onClick: eventHandlers[QUERY_RESETTED]
-                  }),
-                  input("SearchBar__input uk-input js-input", {
-                    type: "text",
-                    value: query,
-                    onInput: eventHandlers[QUERY_CHANGED],
-                    "data-testid": QUERY_FIELD_TESTID
-                  })
-                ]),
-                h3(
-                  "uk-heading-bullet uk-margin-remove-top",
-                  { "data-testid": RESULTS_HEADER_TESTID },
-                  [query.length === 0 ? POPULAR_NOW : SEARCH_RESULTS_FOR(query)]
-                ),
-                div("ResultsContainer", { "data-testid": RESULTS_CONTAINER_TESTID }, [
-                  ul(".uk-thumbnav", [
-                    results &&
-                      results
-                        .filter(result => result.backdrop_path)
-                        .map(result =>
-                          li(".uk-margin-bottom", { key: result.id }, [
-                            a(
-                              ".ResultsContainer__result-item.js-result-click",
-                              {
-                                href: "#",
-                                onClick: ev => eventHandlers[MOVIE_SELECTED](ev, result),
-                                "data-id": result.id
-                              },
-                              [
-                                div(".ResultsContainer__thumbnail-holder", [
-                                  img({
-                                    src: `${IMAGE_TMDB_PREFIX}${result.backdrop_path}`,
-                                    alt: "",
-                                    "data-testid": MOVIE_IMG_SRC_TESTID
-                                  })
-                                ]),
-                                div(
-                                  ".ResultsContainer__caption.uk-text-small.uk-text-muted",
-                                  { "data-testid": MOVIE_TITLE_TESTID },
-                                  [result.title]
-                                )
-                              ]
-                            )
-                          ])
-                        )
-                  ])
-                ])
+      App(
+        "item",
+        Events(
+          eventHandlers[MOVIE_DETAILS_DESELECTED],
+          Container([
+            AppView(
+              "home",
+              div("HomePage", _, [
+                TopBar(eventHandlers, query),
+                ResultsContainer(Results(eventHandlers, results))
               ])
-            ]
-          ),
-          div(
-            "App__view uk-margin-top-small uk-margin-left uk-margin-right",
-            { "data-page": "item" },
-            [div([h1([title]), div({ "data-testid": NETWORK_ERROR_TESTID }, [NETWORK_ERROR])])]
-          )
-        ])
-      ])
+            ),
+            AppView(
+              "item",
+              div(_, _, [
+                h1(_, _, title),
+                div(_, { "data-testid": NETWORK_ERROR_TESTID }, NETWORK_ERROR)
+              ])
+            )
+          ])
+        )
+      )
   };
 };
 

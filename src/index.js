@@ -1,6 +1,6 @@
 import "./uikit.css";
 import "./index.css";
-import { _, htmlElementFactory, component, render, Events, onClick } from "ivi";
+import { render } from "ivi";
 import { createStateMachine } from "state-transducer";
 import emitonoff from "emitonoff";
 import { movieSearchFsmDef, commandHandlers, effectHandlers, screens } from "./fsm";
@@ -28,15 +28,13 @@ function subjectFromEventEmitterFactory() {
 const iviRenderCommandHandler = {
   [COMMAND_RENDER]: (trigger, params, effectHandlers, el) => {
     const { screen, args } = params;
-    console.log(`screen, args`, screen, args, el);
-    render(screens(trigger)[screen](...args), document.getElementById("root"));
+    render(screens(trigger)[screen](...args), el);
   }
 };
 const commandHandlersWithRender = Object.assign({}, commandHandlers, iviRenderCommandHandler);
 
 const options = { initialEvent: { [events.USER_NAVIGATED_TO_APP]: void 0 } };
 
-const movieSearch = htmlElementFactory("movie-search");
 makeWebComponentFromFsm({
   name: "movie-search",
   eventSubjectFactory: subjectFromEventEmitterFactory,
@@ -46,4 +44,5 @@ makeWebComponentFromFsm({
   options
 });
 
-render(movieSearch(_, _, []), document.getElementById("root"));
+const movieSearch = document.createElement("movie-search");
+document.getElementById("root").appendChild(movieSearch);
