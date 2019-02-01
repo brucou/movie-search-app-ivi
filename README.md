@@ -9,6 +9,7 @@ technologies are :
 Portability was important as the underlying idea is to port this application into many different
 front-end frameworks. So far, implementation exists for :
   - [inferno](https://github.com/brucou/movie-search-app-inferno)
+  - [nerv](https://github.com/brucou/movie-search-app-nerv)
   - [react](https://codesandbox.io/s/kwn3lx2qx7)
   
 # Installation and execution
@@ -17,6 +18,8 @@ The application is built with parcel. To run it :
 `npm install`
 
 `npm run start`
+
+Alternatively, you can peruse the [codesandbox](https://codesandbox.io/s/3x9x5v4kq5)
 
 # State machine
 The state machine modelizing the search application is as follows :
