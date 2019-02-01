@@ -3,7 +3,8 @@ import "./index.css";
 import { render } from "ivi";
 import { createStateMachine } from "state-transducer";
 import emitonoff from "emitonoff";
-import { movieSearchFsmDef, commandHandlers, effectHandlers, screens } from "./fsm";
+import { movieSearchFsmDef, commandHandlers, effectHandlers } from "./fsm";
+import { screens } from "./screens";
 import { applyJSONpatch, makeWebComponentFromFsm } from "./helpers";
 import { COMMAND_RENDER, events } from "./properties";
 
