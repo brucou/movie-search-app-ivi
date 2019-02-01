@@ -1,8 +1,8 @@
-import "./uikit.css";
-import "./index.css";
+// import "./uikit.css";
+// import "./index.css";
 import { render } from "ivi";
 import { createStateMachine } from "state-transducer";
-import emitonoff from "emitonoff";
+import {emitonoff} from "./emitonoff";
 import { movieSearchFsmDef, commandHandlers, effectHandlers } from "./fsm";
 import { screens } from "./screens";
 import { applyJSONpatch, makeWebComponentFromFsm } from "./helpers";

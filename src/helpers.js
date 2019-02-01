@@ -1,4 +1,4 @@
-import superagent from "superagent";
+import {superagent} from "./superagent";
 import { applyPatch } from "json-patch-es6";
 
 // Helpers

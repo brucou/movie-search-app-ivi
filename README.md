@@ -25,3 +25,7 @@ Alternatively, you can peruse the [codesandbox](https://codesandbox.io/s/3x9x5v4
 The state machine modelizing the search application is as follows :
 
 ![](movie%20search%20good%20fsm%20corrected%20flowchart%20no%20emphasis%20switchMap.png)
+
+# Notes
+17K minified gzip. Probably can be brought down through better config... and substituting json 
+patch for a mere function
