@@ -2,7 +2,7 @@
 // import "./index.css";
 import { render } from "ivi";
 import { createStateMachine } from "state-transducer";
-import {emitonoff} from "./emitonoff";
+import emitonoff from "emitonoff";
 import { movieSearchFsmDef, commandHandlers, effectHandlers } from "./fsm";
 import { screens } from "./screens";
 import { applyJSONpatch, makeWebComponentFromFsm } from "./helpers";
@@ -27,9 +27,10 @@ function subjectFromEventEmitterFactory() {
 }
 
 const iviRenderCommandHandler = {
-  [COMMAND_RENDER]: (trigger, params, effectHandlers, el) => {
-    const { screen, args } = params;
-    render(screens(trigger)[screen](...args), el);
+  [COMMAND_RENDER]: (next, params, effectHandlers, el) => {
+    const { screen, query, results, title, details, cast } = params;
+    const props = params;
+    render(screens(next)[screen](props), el);
   }
 };
 const commandHandlersWithRender = Object.assign({}, commandHandlers, iviRenderCommandHandler);

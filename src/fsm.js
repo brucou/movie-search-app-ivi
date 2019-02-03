@@ -1,22 +1,18 @@
 import { NO_OUTPUT, NO_STATE_UPDATE } from "state-transducer";
 import {
-  DISCOVERY_REQUEST,
-  // commands
   COMMAND_MOVIE_DETAILS_SEARCH,
   COMMAND_MOVIE_SEARCH,
   COMMAND_RENDER,
-  // states
-  START,
+  DISCOVERY_REQUEST,
+  events,
   MOVIE_DETAIL_QUERYING,
   MOVIE_DETAIL_SELECTION,
   MOVIE_DETAIL_SELECTION_ERROR,
   MOVIE_QUERYING,
   MOVIE_SELECTION,
   MOVIE_SELECTION_ERROR,
-  // events
-  events,
-  // screens
-  screens as screenIds
+  screens as screenIds,
+  START
 } from "./properties";
 import { makeQuerySlug, runMovieDetailQuery, runMovieSearchQuery } from "./helpers";
 
@@ -187,7 +183,7 @@ function displayLoadingScreenAndQueryDb(extendedState, eventData, fsmSettings) {
   };
   const renderCommand = {
     command: COMMAND_RENDER,
-    params: { screen: LOADING_SCREEN, args: [] }
+    params: { screen: LOADING_SCREEN }
   };
   return {
     updates: NO_STATE_UPDATE,
@@ -206,7 +202,8 @@ function displayLoadingScreenAndQueryNonEmpty(extendedState, eventData, fsmSetti
     command: COMMAND_RENDER,
     params: {
       screen: SEARCH_RESULTS_AND_LOADING_SCREEN,
-      args: [results, query]
+      results,
+      query
     }
   };
   return {
@@ -225,7 +222,8 @@ function displayMovieSearchResultsScreen(extendedState, eventData, fsmSettings) 
     command: COMMAND_RENDER,
     params: {
       screen: SEARCH_RESULTS_SCREEN,
-      args: [results, query || ""]
+      results,
+      query: query || ""
     }
   };
 
@@ -241,7 +239,8 @@ function displayCurrentMovieSearchResultsScreen(extendedState, eventData, fsmSet
     command: COMMAND_RENDER,
     params: {
       screen: SEARCH_RESULTS_SCREEN,
-      args: [results, movieQuery || ""]
+      results,
+      query: movieQuery || ""
     }
   };
 
@@ -257,7 +256,7 @@ function displayMovieSearchErrorScreen(extendedState, eventData, fsmSettings) {
     command: COMMAND_RENDER,
     params: {
       screen: SEARCH_ERROR_SCREEN,
-      args: [queryFieldHasChanged ? movieQuery : ""]
+      query: queryFieldHasChanged ? movieQuery : ""
     }
   };
 
@@ -280,7 +279,9 @@ function displayDetailsLoadingScreenAndQueryDetailsDb(extendedState, eventData, 
     command: COMMAND_RENDER,
     params: {
       screen: SEARCH_RESULTS_WITH_MOVIE_DETAILS_AND_LOADING_SCREEN,
-      args: [results, movieQuery, movie]
+      results,
+      query: movieQuery,
+      title: movie.title
     }
   };
 
@@ -298,7 +299,11 @@ function displayMovieDetailsSearchResultsScreen(extendedState, eventData, fsmSet
     command: COMMAND_RENDER,
     params: {
       screen: SEARCH_RESULTS_WITH_MOVIE_DETAILS,
-      args: [results, movieQuery, movieDetails, cast]
+      results,
+      query: movieQuery,
+      title: movieTitle,
+      details: movieDetails,
+      cast
     }
   };
 
@@ -318,7 +323,9 @@ function displayMovieDetailsSearchErrorScreen(extendedState, eventData, fsmSetti
     command: COMMAND_RENDER,
     params: {
       screen: SEARCH_RESULTS_WITH_MOVIE_DETAILS_ERROR,
-      args: [results, movieQuery, movieTitle]
+      results,
+      query: movieQuery,
+      title: movieTitle
     }
   };
 

@@ -142,7 +142,7 @@ export const screens = next => {
           )
         )
       ),
-    [SEARCH_RESULTS_SCREEN]: (results, query) =>
+    [SEARCH_RESULTS_SCREEN]: ({ results, query }) =>
       App(
         "home",
         Container(
@@ -155,7 +155,7 @@ export const screens = next => {
           )
         )
       ),
-    [SEARCH_ERROR_SCREEN]: query =>
+    [SEARCH_ERROR_SCREEN]: ({ query }) =>
       App(
         "home",
         Container(
@@ -168,7 +168,7 @@ export const screens = next => {
           )
         )
       ),
-    [SEARCH_RESULTS_AND_LOADING_SCREEN]: (results, query) =>
+    [SEARCH_RESULTS_AND_LOADING_SCREEN]: ({ results, query }) =>
       App(
         "home",
         Container(
@@ -178,7 +178,7 @@ export const screens = next => {
           )
         )
       ),
-    [SEARCH_RESULTS_WITH_MOVIE_DETAILS_AND_LOADING_SCREEN]: (results, query, movieDetail) =>
+    [SEARCH_RESULTS_WITH_MOVIE_DETAILS_AND_LOADING_SCREEN]: ({ results, query, title }) =>
       App(
         "item",
         Container([
@@ -189,10 +189,10 @@ export const screens = next => {
               ResultsContainer(Results(eventHandlers, results))
             ])
           ),
-          AppView("item", div(_, _, [h1(_, _, movieDetail.title), div(_, _, LOADING)]))
+          AppView("item", div(_, _, [h1(_, _, title), div(_, _, LOADING)]))
         ])
       ),
-    [SEARCH_RESULTS_WITH_MOVIE_DETAILS]: (results, query, details, cast) =>
+    [SEARCH_RESULTS_WITH_MOVIE_DETAILS]: ({ results, query, details, cast }) =>
       App(
         "item",
         Events(
@@ -237,9 +237,7 @@ export const screens = next => {
                       "IMDb URL",
                       a(
                         _,
-                        {
-                          href: `https://www.imdb.com/title/${details.imdb_id}/`
-                        },
+                        { href: `https://www.imdb.com/title/${details.imdb_id}/` },
                         `https://www.imdb.com/title/${details.imdb_id}/`
                       )
                       )
@@ -251,7 +249,7 @@ export const screens = next => {
           ])
         )
       ),
-    [SEARCH_RESULTS_WITH_MOVIE_DETAILS_ERROR]: (results, query, title) =>
+    [SEARCH_RESULTS_WITH_MOVIE_DETAILS_ERROR]: ({ results, query, title }) =>
       App(
         "item",
         Events(
