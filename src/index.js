@@ -27,9 +27,10 @@ function subjectFromEventEmitterFactory() {
 }
 
 const iviRenderCommandHandler = {
-  [COMMAND_RENDER]: (trigger, params, effectHandlers, el) => {
-    const { screen, args } = params;
-    render(screens(trigger)[screen](...args), el);
+  [COMMAND_RENDER]: (next, params, effectHandlers, el) => {
+    const { screen, query, results, title, details, cast } = params;
+    const props = params;
+    render(screens(next)[screen](props), el);
   }
 };
 const commandHandlersWithRender = Object.assign({}, commandHandlers, iviRenderCommandHandler);
