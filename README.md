@@ -29,4 +29,4 @@ The state machine modelizing the search application is as follows :
 
 # Notes
 17K minified gzip. Probably can be brought down through better config... and substituting json 
-patch for a mere function
+patch (that is 3KB gzipped) for a mere function
