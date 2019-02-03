@@ -11,6 +11,7 @@ front-end frameworks. So far, implementation exists for :
   - [inferno](https://github.com/brucou/movie-search-app-inferno)
   - [nerv](https://github.com/brucou/movie-search-app-nerv)
   - [react](https://codesandbox.io/s/kwn3lx2qx7)
+  - [svelte](https://github.com/brucou/movie-search-app-svelte)
 
 # Installation and execution
 The application is built with parcel. To run it :
