@@ -13,7 +13,7 @@
     "ivi": "0.20.0",
     "ivi-html": "0.20.0",
     "json-patch-es6": "2.0.6",
-    "state-transducer": "0.10.2",
+    "state-transducer": "0.15.0",
     "superagent": "4.0.0"
   },
   "devDependencies": {

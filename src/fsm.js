@@ -1,20 +1,26 @@
 import { NO_OUTPUT, NO_STATE_UPDATE } from "state-transducer";
 import {
-  COMMAND_MOVIE_DETAILS_SEARCH,
-  COMMAND_MOVIE_SEARCH,
-  COMMAND_RENDER,
-  DISCOVERY_REQUEST,
-  events,
-  MOVIE_DETAIL_QUERYING,
-  MOVIE_DETAIL_SELECTION,
-  MOVIE_DETAIL_SELECTION_ERROR,
-  MOVIE_QUERYING,
-  MOVIE_SELECTION,
-  MOVIE_SELECTION_ERROR,
-  screens as screenIds,
-  START
+  COMMAND_MOVIE_DETAILS_SEARCH, COMMAND_MOVIE_SEARCH, COMMAND_RENDER, DISCOVERY_REQUEST, events, MOVIE_DETAIL_QUERYING,
+  MOVIE_DETAIL_SELECTION, MOVIE_DETAIL_SELECTION_ERROR, MOVIE_QUERYING, MOVIE_SELECTION, MOVIE_SELECTION_ERROR,
+  screens as screenIds, START
 } from "./properties";
 import { makeQuerySlug, runMovieDetailQuery, runMovieSearchQuery } from "./helpers";
+import { applyPatch } from "json-patch-es6";
+
+/**
+ *
+ * @param {ExtendedState} extendedState
+ * @param {Operation[]} extendedStateUpdateOperations
+ * @returns {ExtendedState}
+ */
+export function applyJSONpatch(extendedState, extendedStateUpdateOperations) {
+  return applyPatch(
+    extendedState,
+    extendedStateUpdateOperations || [],
+    false,
+    false
+  ).newDocument;
+}
 
 const NO_ACTIONS = () => ({ outputs: NO_OUTPUT, updates: NO_STATE_UPDATE });
 
@@ -55,8 +61,9 @@ const {
   SEARCH_RESULTS_WITH_MOVIE_DETAILS_AND_LOADING_SCREEN,
   SEARCH_RESULTS_WITH_MOVIE_DETAILS_ERROR
 } = screenIds;
+
+// { from: INIT_STATE, event: INIT_EVENT, to: START, action: NO_ACTIONS },
 const transitions = [
-  // { from: INIT_STATE, event: INIT_EVENT, to: START, action: NO_ACTIONS },
   {
     from: START,
     event: USER_NAVIGATED_TO_APP,
@@ -144,7 +151,6 @@ const transitions = [
     action: displayCurrentMovieSearchResultsScreen
   }
 ];
-
 export const commandHandlers = {
   [COMMAND_MOVIE_SEARCH]: (next, _query, effectHandlers) => {
     const querySlug = _query === "" ? DISCOVERY_REQUEST : makeQuerySlug(_query);
@@ -166,7 +172,9 @@ export const commandHandlers = {
   [COMMAND_MOVIE_DETAILS_SEARCH]: (next, movieId, effectHandlers) => {
     effectHandlers
       .runMovieDetailQuery(movieId)
-      .then(([details, cast]) => next({ [SEARCH_RESULTS_MOVIE_RECEIVED]: [details, cast] }))
+      .then(([details, cast]) =>
+        next({ [SEARCH_RESULTS_MOVIE_RECEIVED]: [details, cast] })
+      )
       .catch(err => next({ [SEARCH_ERROR_MOVIE_RECEIVED]: err }));
   }
 };
@@ -191,8 +199,17 @@ function displayLoadingScreenAndQueryDb(extendedState, eventData, fsmSettings) {
   };
 }
 
-function displayLoadingScreenAndQueryNonEmpty(extendedState, eventData, fsmSettings) {
-  const { queryFieldHasChanged, movieQuery, results, movieTitle } = extendedState;
+function displayLoadingScreenAndQueryNonEmpty(
+  extendedState,
+  eventData,
+  fsmSettings
+) {
+  const {
+    queryFieldHasChanged,
+    movieQuery,
+    results,
+    movieTitle
+  } = extendedState;
   const query = eventData;
   const searchCommand = {
     command: COMMAND_MOVIE_SEARCH,
@@ -215,7 +232,11 @@ function displayLoadingScreenAndQueryNonEmpty(extendedState, eventData, fsmSetti
   };
 }
 
-function displayMovieSearchResultsScreen(extendedState, eventData, fsmSettings) {
+function displayMovieSearchResultsScreen(
+  extendedState,
+  eventData,
+  fsmSettings
+) {
   const searchResults = eventData;
   const { results, query } = searchResults;
   const renderCommand = {
@@ -233,7 +254,11 @@ function displayMovieSearchResultsScreen(extendedState, eventData, fsmSettings) 
   };
 }
 
-function displayCurrentMovieSearchResultsScreen(extendedState, eventData, fsmSettings) {
+function displayCurrentMovieSearchResultsScreen(
+  extendedState,
+  eventData,
+  fsmSettings
+) {
   const { movieQuery, results } = extendedState;
   const renderCommand = {
     command: COMMAND_RENDER,
@@ -251,7 +276,12 @@ function displayCurrentMovieSearchResultsScreen(extendedState, eventData, fsmSet
 }
 
 function displayMovieSearchErrorScreen(extendedState, eventData, fsmSettings) {
-  const { queryFieldHasChanged, movieQuery, results, movieTitle } = extendedState;
+  const {
+    queryFieldHasChanged,
+    movieQuery,
+    results,
+    movieTitle
+  } = extendedState;
   const renderCommand = {
     command: COMMAND_RENDER,
     params: {
@@ -266,7 +296,11 @@ function displayMovieSearchErrorScreen(extendedState, eventData, fsmSettings) {
   };
 }
 
-function displayDetailsLoadingScreenAndQueryDetailsDb(extendedState, eventData, fsmSettings) {
+function displayDetailsLoadingScreenAndQueryDetailsDb(
+  extendedState,
+  eventData,
+  fsmSettings
+) {
   const { movie } = eventData;
   const movieId = movie.id;
   const { movieQuery, results } = extendedState;
@@ -291,9 +325,18 @@ function displayDetailsLoadingScreenAndQueryDetailsDb(extendedState, eventData, 
   };
 }
 
-function displayMovieDetailsSearchResultsScreen(extendedState, eventData, fsmSettings) {
+function displayMovieDetailsSearchResultsScreen(
+  extendedState,
+  eventData,
+  fsmSettings
+) {
   const [movieDetails, cast] = eventData;
-  const { queryFieldHasChanged, movieQuery, results, movieTitle } = extendedState;
+  const {
+    queryFieldHasChanged,
+    movieQuery,
+    results,
+    movieTitle
+  } = extendedState;
 
   const renderCommand = {
     command: COMMAND_RENDER,
@@ -316,8 +359,17 @@ function displayMovieDetailsSearchResultsScreen(extendedState, eventData, fsmSet
   };
 }
 
-function displayMovieDetailsSearchErrorScreen(extendedState, eventData, fsmSettings) {
-  const { queryFieldHasChanged, movieQuery, results, movieTitle } = extendedState;
+function displayMovieDetailsSearchErrorScreen(
+  extendedState,
+  eventData,
+  fsmSettings
+) {
+  const {
+    queryFieldHasChanged,
+    movieQuery,
+    results,
+    movieTitle
+  } = extendedState;
 
   const renderCommand = {
     command: COMMAND_RENDER,
@@ -335,16 +387,6 @@ function displayMovieDetailsSearchErrorScreen(extendedState, eventData, fsmSetti
   };
 }
 
-const movieSearchFsmDef = {
-  initialControlState,
-  initialExtendedState,
-  states,
-  events: Object.values(events),
-  transitions
-};
-
-export { movieSearchFsmDef };
-
 // Guards
 function isExpectedMovieResults(extendedState, eventData, settings) {
   const { query: fetched } = eventData;
@@ -355,3 +397,14 @@ function isExpectedMovieResults(extendedState, eventData, settings) {
 function isNotExpectedMovieResults(extendedState, eventData, settings) {
   return !isExpectedMovieResults(extendedState, eventData, settings);
 }
+
+const movieSearchFsmDef = {
+  initialControlState,
+  initialExtendedState,
+  states,
+  events: Object.values(events),
+  transitions,
+  updateState: applyJSONpatch
+};
+
+export { movieSearchFsmDef };
